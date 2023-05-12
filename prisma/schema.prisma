@@ -1,0 +1,98 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Agent {
+    uid         String   @unique @db.Uuid
+    displayName String   @map("display_name")
+    projectId   String   @map("project_id")
+    location    String
+    agent       String   @db.Uuid
+    startFlow   String   @map("start_flow")
+    Flow        Flow[]
+    Entity      Entity[]
+    Intent      Intent[]
+
+    @@map("agent")
+}
+
+model Flow {
+    name        String @unique @db.Uuid
+    displayName String @map("display_name")
+    agentId     String @map("agent_id") @db.Uuid
+    nluSettings Json
+
+    agent Agent  @relation(fields: [agentId], references: [uid])
+    Page  Page[]
+
+    @@map("flow")
+}
+
+model Page {
+    name             String @unique @db.Uuid
+    displayName      String @map("display_name")
+    flowId           String @map("flow_id") @db.Uuid
+    entryFulfillment Json
+    transitionRoutes Json[]
+
+    flow Flow @relation(fields: [flowId], references: [name])
+
+    @@map("page")
+}
+
+model Entity {
+    name                  String            @unique @db.Uuid
+    displayName           String            @map("display_name")
+    agentId               String            @map("agent_id") @db.Uuid
+    kind                  kind
+    autoExpansionMode     autoExpansionMode
+    enableFuzzyExtraction Boolean           @map("enable_fuzzy_extraction")
+    entities              Json[]
+
+    agent Agent @relation(fields: [agentId], references: [uid])
+
+    @@map("entity")
+}
+
+model Intent {
+    name        String  @unique @db.Uuid
+    displayName String  @map("display_name")
+    agentId     String  @map("agent_id") @db.Uuid
+    parameters  Json[]
+    labels      Json[]
+    priority    Int
+    description String
+    isFallback  Boolean
+
+    agent Agent @relation(fields: [agentId], references: [uid])
+
+    @@map("intent")
+}
+
+model Webhook {
+    name              String  @unique @db.Uuid
+    displayName       String  @map("display_name")
+    agentId           String  @map("agent_id") @db.Uuid
+    disabled          Boolean
+    genericWebService Json
+    timeout           Json
+
+    @@map("webhook")
+}
+
+enum kind {
+    KIND_UNSPECIFIED
+    KIND_MAP
+    KIND_LIST
+    KIND_REGEXP
+}
+
+enum autoExpansionMode {
+    AUTO_EXPANSION_MODE_UNSPECIFIED
+    AUTO_EXPANSION_MODE_DEFAULT
+}
