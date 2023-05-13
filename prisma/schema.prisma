@@ -8,80 +8,104 @@ datasource db {
 }
 
 model Agent {
-    uid         String   @unique @db.Uuid
+    uid         String   @unique @default(uuid()) @db.Uuid
+    agent       String   @db.Uuid
     displayName String   @map("display_name")
     projectId   String   @map("project_id")
     location    String
-    agent       String   @db.Uuid
     startFlow   String   @map("start_flow")
+    createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
     Flow        Flow[]
     Entity      Entity[]
     Intent      Intent[]
 
+    @@unique([projectId, agent])
     @@map("agent")
 }
 
 model Flow {
-    name        String @unique @db.Uuid
-    displayName String @map("display_name")
-    agentId     String @map("agent_id") @db.Uuid
+    uid         String   @unique @default(uuid()) @db.Uuid
+    name        String   @db.Uuid
+    displayName String   @map("display_name")
+    agentId     String   @map("agent_id") @db.Uuid
     nluSettings Json
+    createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
     agent Agent  @relation(fields: [agentId], references: [uid])
     Page  Page[]
 
+    @@unique([name, agentId])
     @@map("flow")
 }
 
 model Page {
-    name             String @unique @db.Uuid
-    displayName      String @map("display_name")
-    flowId           String @map("flow_id") @db.Uuid
+    uid              String   @unique @default(uuid()) @db.Uuid
+    name             String   @db.Uuid
+    displayName      String   @map("display_name")
+    flowId           String   @map("flow_id") @db.Uuid
     entryFulfillment Json
     transitionRoutes Json[]
+    createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
-    flow Flow @relation(fields: [flowId], references: [name])
+    flow Flow @relation(fields: [flowId], references: [uid])
 
+    @@unique([name, flowId])
     @@map("page")
 }
 
 model Entity {
-    name                  String            @unique @db.Uuid
+    uid                   String            @unique @default(uuid()) @db.Uuid
+    name                  String            @db.Uuid
     displayName           String            @map("display_name")
     agentId               String            @map("agent_id") @db.Uuid
     kind                  kind
     autoExpansionMode     autoExpansionMode
     enableFuzzyExtraction Boolean           @map("enable_fuzzy_extraction")
     entities              Json[]
+    createdAt             DateTime          @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt             DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
     agent Agent @relation(fields: [agentId], references: [uid])
 
+    @@unique([name, agentId])
     @@map("entity")
 }
 
 model Intent {
-    name        String  @unique @db.Uuid
-    displayName String  @map("display_name")
-    agentId     String  @map("agent_id") @db.Uuid
-    parameters  Json[]
-    labels      Json[]
-    priority    Int
-    description String
-    isFallback  Boolean
+    uid             String   @unique @default(uuid()) @db.Uuid
+    name            String   @db.Uuid
+    displayName     String   @map("display_name")
+    agentId         String   @map("agent_id") @db.Uuid
+    parameters      Json[]
+    labels          Json[]
+    priority        Int
+    trainingPhrases Json[]   @map("training_phrases")
+    description     String
+    isFallback      Boolean
+    createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
     agent Agent @relation(fields: [agentId], references: [uid])
 
+    @@unique([name, agentId])
     @@map("intent")
 }
 
 model Webhook {
-    name              String  @unique @db.Uuid
-    displayName       String  @map("display_name")
-    agentId           String  @map("agent_id") @db.Uuid
+    uid               String   @unique @default(uuid()) @db.Uuid
+    name              String   @unique @db.Uuid
+    displayName       String   @map("display_name")
+    agentId           String   @map("agent_id") @db.Uuid
     disabled          Boolean
     genericWebService Json
     timeout           Json
+    createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
+    @@unique([name, agentId])
     @@map("webhook")
 }
 
