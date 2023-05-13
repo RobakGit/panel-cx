@@ -1,4 +1,4 @@
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import fs from "fs";
 
 export default async function importAgentData({
@@ -14,7 +14,7 @@ export default async function importAgentData({
 }) {
   const agentData = JSON.parse(
     fs
-      .readFileSync(`./src/pages/api/botFiles/${projectId}-${agent}/agent.json`)
+      .readFileSync(`./src/botFiles/${projectId}-${agent}/agent.json`)
       .toString()
   );
 

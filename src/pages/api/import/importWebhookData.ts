@@ -1,10 +1,10 @@
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import fs from "fs";
 import { Agent } from "@prisma/client";
 
 export default async function importWebhookData(agent: Agent) {
   const webhooksList = fs.readdirSync(
-    `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/webhooks`
+    `./src/botFiles/${agent.projectId}-${agent.agent}/webhooks`
   );
   const importedWebhooks = [];
 
@@ -12,7 +12,7 @@ export default async function importWebhookData(agent: Agent) {
     const webhookData = JSON.parse(
       fs
         .readFileSync(
-          `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/webhooks/${webhook}`
+          `./src/botFiles/${agent.projectId}-${agent.agent}/webhooks/${webhook}`
         )
         .toString()
     );

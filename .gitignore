@@ -129,5 +129,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-src/pages/api/botFiles/*
-src/pages/api/keys/*
+src/botFiles/*
+src/keys/*

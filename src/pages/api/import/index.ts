@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import { AgentsClient } from "@google-cloud/dialogflow-cx";
 import StreamZip from "node-stream-zip";
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import importAgentData from "./importAgentData";
 import importFlowsData from "./importFlowData";
 import importIntentsData from "./importIntentData";
@@ -11,7 +11,7 @@ import importEntitiesData from "./importEntityData";
 import importPagesData from "./importPageData";
 
 const bot = "test-cx-337210-1964942375bb.json";
-const keyPath = `./src/pages/api/keys/${bot}`;
+const keyPath = `./src/keys/${bot}`;
 const key = JSON.parse(fs.readFileSync(keyPath).toString());
 const copiedNameFromDialogflow =
   "projects/test-cx-337210/locations/europe-west1/agents/dcceffad-08bd-4afc-84e8-ec36b3c6b72c";
@@ -47,22 +47,22 @@ export default async function DialogflowImport(
       dataFormat: "JSON_PACKAGE",
     });
     const [response] = await operation.promise();
-    if (!fs.existsSync(`./src/pages/api/botFiles/${projectId}-${agent}`)) {
-      fs.mkdirSync(`./src/pages/api/botFiles/${projectId}-${agent}`);
+    if (!fs.existsSync(`./src/botFiles/${projectId}-${agent}`)) {
+      fs.mkdirSync(`./src/botFiles/${projectId}-${agent}`);
     }
     if (response && response.agentContent) {
       fs.writeFileSync(
-        `./src/pages/api/botFiles/${projectId}-${agent}/${agent}.zip`,
+        `./src/botFiles/${projectId}-${agent}/${agent}.zip`,
         response.agentContent
       );
     }
 
     const zip = new StreamZip.async({
-      file: `./src/pages/api/botFiles/${projectId}-${agent}/${agent}.zip`,
+      file: `./src/botFiles/${projectId}-${agent}/${agent}.zip`,
     });
     const count = await zip.extract(
       null,
-      `./src/pages/api/botFiles/${projectId}-${agent}`
+      `./src/botFiles/${projectId}-${agent}`
     );
     console.log(`Extracted ${count} entries`);
     await zip.close();

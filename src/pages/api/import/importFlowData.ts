@@ -1,10 +1,10 @@
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import fs from "fs";
 import { Agent, Flow } from "@prisma/client";
 
 export default async function importFlowsData(agent: Agent) {
   const flowsList = fs.readdirSync(
-    `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/flows`
+    `./src/botFiles/${agent.projectId}-${agent.agent}/flows`
   );
   const importedFlows: Array<Flow> = [];
 
@@ -12,7 +12,7 @@ export default async function importFlowsData(agent: Agent) {
     const flowData = JSON.parse(
       fs
         .readFileSync(
-          `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/flows/${flow}/${flow}.json`
+          `./src/botFiles/${agent.projectId}-${agent.agent}/flows/${flow}/${flow}.json`
         )
         .toString()
     );
