@@ -6,11 +6,13 @@ export default async function importAgentData({
   projectId,
   locations,
   displayName,
+  keyFile,
 }: {
   agent: string;
   projectId: string;
   locations: string;
   displayName: string;
+  keyFile: string;
 }) {
   const agentData = JSON.parse(
     fs
@@ -38,6 +40,7 @@ export default async function importAgentData({
         projectId: projectId,
         location: locations,
         startFlow: agentData.startFlow,
+        keyFilePath: keyFile,
       },
     });
   }

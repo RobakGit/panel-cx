@@ -10,6 +10,7 @@ datasource db {
 model Agent {
     uid         String   @unique @default(uuid()) @db.Uuid
     agent       String   @db.Uuid
+    keyFilePath String   @map("key_filename")
     displayName String   @map("display_name")
     projectId   String   @map("project_id")
     location    String
@@ -96,7 +97,7 @@ model Intent {
 
 model Webhook {
     uid               String   @unique @default(uuid()) @db.Uuid
-    name              String   @unique @db.Uuid
+    name              String   @db.Uuid
     displayName       String   @map("display_name")
     agentId           String   @map("agent_id") @db.Uuid
     disabled          Boolean
