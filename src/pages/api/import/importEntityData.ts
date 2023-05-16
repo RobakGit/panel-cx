@@ -1,10 +1,10 @@
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import fs from "fs";
 import { Agent, Entity, autoExpansionMode } from "@prisma/client";
 
 export default async function importEntitiesData(agent: Agent) {
   const entitiesList = fs.readdirSync(
-    `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/entityTypes`
+    `./src/botFiles/${agent.projectId}-${agent.agent}/entityTypes`
   );
   const importedEntities: Array<Entity> = [];
 
@@ -12,7 +12,7 @@ export default async function importEntitiesData(agent: Agent) {
     const entityData = JSON.parse(
       fs
         .readFileSync(
-          `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/${entity}.json`
+          `./src/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/${entity}.json`
         )
         .toString()
     );
@@ -20,13 +20,13 @@ export default async function importEntitiesData(agent: Agent) {
     let entities = [];
     if (
       fs.existsSync(
-        `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/entities`
+        `./src/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/entities`
       )
     ) {
       entities = JSON.parse(
         fs
           .readFileSync(
-            `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/entities/pl.json`
+            `./src/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/entities/pl.json`
           )
           .toString()
       );

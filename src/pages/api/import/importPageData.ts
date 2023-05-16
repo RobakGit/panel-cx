@@ -1,4 +1,4 @@
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import fs from "fs";
 import { Agent, Flow, Page } from "@prisma/client";
 
@@ -13,19 +13,19 @@ export default async function importPages9iData({
   for (const flow of flowsList) {
     if (
       !fs.existsSync(
-        `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/flows/${flow.displayName}/pages`
+        `./src/botFiles/${agent.projectId}-${agent.agent}/flows/${flow.displayName}/pages`
       )
     )
       continue;
     const pagesList = fs.readdirSync(
-      `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/flows/${flow.displayName}/pages`
+      `./src/botFiles/${agent.projectId}-${agent.agent}/flows/${flow.displayName}/pages`
     );
 
     for (const page of pagesList) {
       const pageData = JSON.parse(
         fs
           .readFileSync(
-            `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/flows/${flow.displayName}/pages/${page}`
+            `./src/botFiles/${agent.projectId}-${agent.agent}/flows/${flow.displayName}/pages/${page}`
           )
           .toString()
       );

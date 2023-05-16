@@ -1,4 +1,4 @@
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import fs from "fs";
 
 export default async function importAgentData({
@@ -6,15 +6,17 @@ export default async function importAgentData({
   projectId,
   locations,
   displayName,
+  keyFile,
 }: {
   agent: string;
   projectId: string;
   locations: string;
   displayName: string;
+  keyFile: string;
 }) {
   const agentData = JSON.parse(
     fs
-      .readFileSync(`./src/pages/api/botFiles/${projectId}-${agent}/agent.json`)
+      .readFileSync(`./src/botFiles/${projectId}-${agent}/agent.json`)
       .toString()
   );
 
@@ -38,6 +40,7 @@ export default async function importAgentData({
         projectId: projectId,
         location: locations,
         startFlow: agentData.startFlow,
+        keyFilePath: keyFile,
       },
     });
   }

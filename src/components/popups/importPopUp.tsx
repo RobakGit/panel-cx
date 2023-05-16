@@ -3,10 +3,8 @@ import {
   DialogContent,
   TextField,
   Tooltip,
-  Icon,
   List,
   ListItem,
-  ListItemAvatar,
   InputAdornment,
   Button,
   Snackbar,
@@ -14,7 +12,7 @@ import {
 } from "@mui/material";
 import { Portal } from "@mui/base";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 const ImportPopUp = (props: {
   isImportOpen: boolean;
@@ -27,12 +25,17 @@ const ImportPopUp = (props: {
   const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
   const [requestStatus, setRequestStatus] = useState<"success" | "error">();
   const [alertMessage, setAllertMessage] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
 
   const importAgent = () => {
+    if (!attachment) return;
+    const data = new FormData();
+    data.append("agentName", agentName);
+    data.append("agentDisplayName", agentDisplayName);
+    data.append("key", attachment);
     fetch("/api/import", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ agentName, agentDisplayName }),
+      body: data,
     })
       .then(response => {
         if (!response.ok) {
@@ -52,6 +55,14 @@ const ImportPopUp = (props: {
 
   const closeSnackbar = () => {
     setIsSnackbarOpen(false);
+  };
+
+  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) return;
+    const files = Array.from(event.target.files);
+    const [file] = files;
+    setAttachment(file);
+    console.log(file);
   };
 
   return (
@@ -102,6 +113,13 @@ const ImportPopUp = (props: {
                 value={agentDisplayName}
                 onChange={e => setAgentDisplayName(e.target.value)}
               />
+            </ListItem>
+            <ListItem sx={{ display: "flex", justifyContent: "right" }}>
+              {attachment?.name}
+              <Button variant="contained" component="label">
+                Upload File
+                <input type="file" hidden onChange={handleFile} />
+              </Button>
             </ListItem>
             <ListItem sx={{ display: "flex", justifyContent: "right" }}>
               <Button variant="contained" sx={{ m: 2 }} onClick={importAgent}>

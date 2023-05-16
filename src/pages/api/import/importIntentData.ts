@@ -1,10 +1,10 @@
-import prisma from "../services/prisma";
+import prisma from "@/services/prisma";
 import fs from "fs";
 import { Agent, Intent } from "@prisma/client";
 
 export default async function importIntentsData(agent: Agent) {
   const intentsList = fs.readdirSync(
-    `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/intents`
+    `./src/botFiles/${agent.projectId}-${agent.agent}/intents`
   );
   const importedIntents: Array<Intent> = [];
 
@@ -12,7 +12,7 @@ export default async function importIntentsData(agent: Agent) {
     const intentData = JSON.parse(
       fs
         .readFileSync(
-          `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/${intent}.json`
+          `./src/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/${intent}.json`
         )
         .toString()
     );
@@ -20,16 +20,16 @@ export default async function importIntentsData(agent: Agent) {
     let trainingPhrases = [];
     if (
       fs.existsSync(
-        `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/trainingPhrases`
+        `./src/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/trainingPhrases`
       )
     ) {
       trainingPhrases = JSON.parse(
         fs
           .readFileSync(
-            `./src/pages/api/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/trainingPhrases/pl.json`
+            `./src/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/trainingPhrases/pl.json`
           )
           .toString()
-      );
+      ).trainingPhrases;
     }
 
     const existedIntent = await prisma.intent.findUnique({
@@ -57,7 +57,7 @@ export default async function importIntentsData(agent: Agent) {
           agentId: agent.uid,
           parameters: intentData.parameters ?? [],
           priority: intentData.priority,
-          trainingPhrases,
+          trainingPhrases: trainingPhrases,
           description: intentData.description ?? "",
           isFallback: intentData.isFallback ?? false,
         },

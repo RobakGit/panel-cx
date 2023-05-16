@@ -3,7 +3,8 @@ import { AppBar, Box, Dialog, DialogContent } from "@mui/material";
 import InvertedMuiButton from "../buttons/invertedMuiButton";
 import ImportPopUp from "../popups/importPopUp";
 
-const HeaderContainer = (props: {}) => {
+const HeaderContainer = (props: { headerHeight: number }) => {
+  const { headerHeight } = props;
   const [isImportOpen, setIsImportOpen] = useState(false);
 
   const openImportPopUp = () => {
@@ -15,7 +16,7 @@ const HeaderContainer = (props: {}) => {
   };
 
   return (
-    <AppBar color="primary">
+    <AppBar sx={{ height: headerHeight }} color="primary">
       <Box display={"flex"} flexDirection={"row-reverse"} p={2}>
         <InvertedMuiButton sx={{ mx: 1 }} size="small" text="Eksportuj" />
         <InvertedMuiButton
