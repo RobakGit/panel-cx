@@ -16,32 +16,31 @@ import FileCopyOutlinedIcon from "@mui/icons-material/FileCopyOutlined";
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import { Agent } from "@prisma/client";
 
-const drawerWidth = 240;
 const menuItems = [
-  { title: "Intencje", icon: <ChatOutlinedIcon /> },
-  { title: "Encje", icon: <CategoryOutlinedIcon /> },
-  { title: "Page", icon: <FileCopyOutlinedIcon /> },
-  { title: "Testy automatyczne", icon: <ScienceOutlinedIcon /> },
+  { title: "Intencje", href: "/intent", icon: <ChatOutlinedIcon /> },
+  { title: "Encje", href: "/entity", icon: <CategoryOutlinedIcon /> },
+  { title: "Page", href: "/page", icon: <FileCopyOutlinedIcon /> },
+  {
+    title: "Testy automatyczne",
+    href: "/test",
+    icon: <ScienceOutlinedIcon />,
+  },
 ];
 
-const SideNavigationBarContainer = (props: {}) => {
-  const [open, setOpen] = useState(true);
+const SideNavigationBarContainer = (props: {
+  drawerWidth: number;
+  open: boolean;
+  handleDrawerOpen?: () => void;
+  handleDrawerClose?: () => void;
+}) => {
+  const { drawerWidth, open, handleDrawerOpen, handleDrawerClose } = props;
   const [agents, setAgents] = useState<Array<Agent>>([]);
 
   useEffect(() => {
     fetch("/api/agent")
       .then(data => data.json())
-      .then(data => setAgents(data))
-      .then(() => console.log(agents));
+      .then(data => setAgents(data));
   }, []);
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
 
   return (
     <>
@@ -49,7 +48,7 @@ const SideNavigationBarContainer = (props: {}) => {
         onClick={handleDrawerOpen}
         sx={{
           color: "primary.contrastText",
-          position: "absolute",
+          position: "fixed",
           top: 20,
           left: 20,
           zIndex: 1100,
@@ -79,7 +78,7 @@ const SideNavigationBarContainer = (props: {}) => {
         <List>
           {menuItems.map((item, index) => (
             <ListItem key={item.title} disablePadding>
-              <ListItemButton>
+              <ListItemButton href={item.href}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.title} />
               </ListItemButton>

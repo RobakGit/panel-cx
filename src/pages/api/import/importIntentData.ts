@@ -29,7 +29,7 @@ export default async function importIntentsData(agent: Agent) {
             `./src/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/trainingPhrases/pl.json`
           )
           .toString()
-      );
+      ).trainingPhrases;
     }
 
     const existedIntent = await prisma.intent.findUnique({
@@ -57,7 +57,7 @@ export default async function importIntentsData(agent: Agent) {
           agentId: agent.uid,
           parameters: intentData.parameters ?? [],
           priority: intentData.priority,
-          trainingPhrases,
+          trainingPhrases: trainingPhrases,
           description: intentData.description ?? "",
           isFallback: intentData.isFallback ?? false,
         },

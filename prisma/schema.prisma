@@ -76,15 +76,15 @@ model Entity {
 
 model Intent {
     uid             String   @unique @default(uuid()) @db.Uuid
-    name            String   @db.Uuid
+    name            String   @default(uuid()) @db.Uuid
     displayName     String   @map("display_name")
     agentId         String   @map("agent_id") @db.Uuid
     parameters      Json[]
     labels          Json[]
-    priority        Int
+    priority        Int      @default(500000)
     trainingPhrases Json[]   @map("training_phrases")
-    description     String
-    isFallback      Boolean
+    description     String   @default("")
+    isFallback      Boolean  @default(false)
     createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
     updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
