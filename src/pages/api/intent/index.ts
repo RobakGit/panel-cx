@@ -10,17 +10,28 @@ export default async function DialogflowImport(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const { agent } = req.body;
+    const { agent, searchValue } = req.body;
     if (!agent) {
       return res.status(badRequest).send({ responseMessage: "No agent" });
     }
-    return res.status(success).send(
-      await prisma.intent.findMany({
-        where: { agentId: agent },
-        select: { uid: true, displayName: true },
-        orderBy: { displayName: "asc" },
-      })
-    );
+    let intents = await prisma.intent.findMany({
+      where: { agentId: agent },
+      // select: { uid: true, displayName: true },
+      orderBy: { displayName: "asc" },
+    });
+    if (searchValue) {
+      intents = intents.filter(
+        intent =>
+          intent.trainingPhrases.filter(phrase =>
+            phrase.parts
+              .map(part => part.text)
+              .join("")
+              .toLowerCase()
+              .match(searchValue.toLowerCase())
+          ).length
+      );
+    }
+    return res.status(success).send(intents);
   } else {
     return res.status(notFound).send({ responseMessage: "No route" });
   }

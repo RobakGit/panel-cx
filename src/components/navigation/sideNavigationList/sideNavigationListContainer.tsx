@@ -9,7 +9,7 @@ import {
 import { useRouter } from "next/router";
 
 const SideNavigationListContainer = (props: {
-  HeaderElement?: () => JSX.Element;
+  HeaderElement?: JSX.Element;
   listElements: Array<{ displayName: string; uid: string }>;
   selected?: string | undefined;
   type: string;
@@ -39,7 +39,7 @@ const SideNavigationListContainer = (props: {
         anchor="left"
         open={true}
       >
-        {HeaderElement && <HeaderElement />}
+        {HeaderElement}
         <List sx={{ wordBreak: "break-all" }}>
           <ListItem
             key={"create-new"}
