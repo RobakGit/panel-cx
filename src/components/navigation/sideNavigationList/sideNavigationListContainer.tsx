@@ -41,15 +41,6 @@ const SideNavigationListContainer = (props: {
       >
         {HeaderElement}
         <List sx={{ wordBreak: "break-all" }}>
-          <ListItem
-            key={"create-new"}
-            disablePadding
-            sx={{ backgroundColor: "secondary.main" }}
-          >
-            <ListItemButton onClick={() => selectElement("new")}>
-              <ListItemText primary="Dodaj intencję" />
-            </ListItemButton>
-          </ListItem>
           {listElements.map((item, index) => (
             <ListItem
               key={item.uid}
