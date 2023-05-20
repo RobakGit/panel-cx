@@ -59,12 +59,12 @@ model Page {
 
 model Entity {
     uid                   String            @unique @default(uuid()) @db.Uuid
-    name                  String            @db.Uuid
+    name                  String            @default(uuid()) @db.Uuid
     displayName           String            @map("display_name")
     agentId               String            @map("agent_id") @db.Uuid
-    kind                  kind
-    autoExpansionMode     autoExpansionMode
-    enableFuzzyExtraction Boolean           @map("enable_fuzzy_extraction")
+    kind                  kind              @default(KIND_MAP)
+    autoExpansionMode     autoExpansionMode @default(AUTO_EXPANSION_MODE_UNSPECIFIED)
+    enableFuzzyExtraction Boolean           @default(false) @map("enable_fuzzy_extraction")
     entities              Json[]
     createdAt             DateTime          @default(now()) @map("created_at") @db.Timestamptz
     updatedAt             DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz

@@ -5,7 +5,7 @@ const success = 200;
 const notFound = 404;
 const badRequest = 400;
 
-export default async function DialogflowImport(
+export default async function Intent(
   req: NextApiRequest,
   res: NextApiResponse
 ) {

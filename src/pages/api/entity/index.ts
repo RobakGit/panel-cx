@@ -5,7 +5,7 @@ const success = 200;
 const notFound = 404;
 const badRequest = 400;
 
-export default async function Intents(
+export default async function Entities(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -14,24 +14,23 @@ export default async function Intents(
     if (!agent) {
       return res.status(badRequest).send({ responseMessage: "No agent" });
     }
-    let intents = await prisma.intent.findMany({
+    let entities = await prisma.entity.findMany({
       where: { agentId: agent },
       // select: { uid: true, displayName: true },
       orderBy: { displayName: "asc" },
     });
     if (searchValue) {
-      intents = intents.filter(
-        intent =>
-          intent.trainingPhrases.filter(phrase =>
-            phrase.parts
-              .map(part => part.text)
-              .join("")
-              .toLowerCase()
-              .match(searchValue.toLowerCase())
+      entities = entities.filter(
+        entityType =>
+          entityType.entities.filter(
+            entity =>
+              entity?.synonyms.filter(synonym =>
+                synonym.toLowerCase().match(searchValue.toLowerCase())
+              ).length
           ).length
       );
     }
-    return res.status(success).send(intents);
+    return res.status(success).send(entities);
   } else {
     return res.status(notFound).send({ responseMessage: "No route" });
   }

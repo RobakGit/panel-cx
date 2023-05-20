@@ -47,7 +47,7 @@ export default async function importEntitiesData(agent: Agent) {
             entityData.autoExpansionMode ??
             autoExpansionMode.AUTO_EXPANSION_MODE_UNSPECIFIED,
           enableFuzzyExtraction: entityData.enableFuzzyExtraction ?? false,
-          entities,
+          entities: entities.entities,
         },
       });
     } else {
@@ -61,7 +61,7 @@ export default async function importEntitiesData(agent: Agent) {
             entityData.autoExpansionMode ??
             autoExpansionMode.AUTO_EXPANSION_MODE_UNSPECIFIED,
           enableFuzzyExtraction: entityData.enableFuzzyExtraction ?? false,
-          entities,
+          entities: entities.entities,
         },
       });
     }

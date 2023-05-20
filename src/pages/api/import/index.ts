@@ -27,21 +27,36 @@ export default async function DialogflowImport(
 ) {
   if (req.method === "POST") {
     const form = formidable({ multiples: true });
-    new Promise((resolve, reject) => {
-      form.parse(req, (err, _fields, files) => {
-        if (!_fields.agentName || !files.key)
-          return reject("!_fields.agentName || files.key");
-        const key = files.key;
-        if (!key.filepath) return reject("!key.filepath");
-        const keyFile = `./src/keys/${key.originalFilename}`;
-        fs.copyFileSync(key.filepath, keyFile);
-        resolve({
-          keyFile,
-          agentName: _fields.agentName,
-          agentDisplayName: _fields.agentDisplayName,
+    new Promise(
+      (
+        resolve: (value: {
+          keyFile: string;
+          agentName: string;
+          agentDisplayName: string;
+        }) => void,
+        reject: (reason: string) => void
+      ) => {
+        form.parse(req, (err, _fields, files) => {
+          if (!_fields.agentName || !files.key)
+            return reject("!_fields.agentName || files.key");
+          if (
+            Array.isArray(files.key) ||
+            typeof _fields.agentName !== "string" ||
+            typeof _fields.agentDisplayName !== "string"
+          )
+            return reject("param types error");
+          const key: formidable.File = files.key;
+          if (!key.filepath) return reject("!key.filepath");
+          const keyFile = `./src/keys/${key.originalFilename}`;
+          fs.copyFileSync(key.filepath, keyFile);
+          resolve({
+            keyFile,
+            agentName: _fields.agentName,
+            agentDisplayName: _fields.agentDisplayName,
+          });
         });
-      });
-    })
+      }
+    )
       .then(async ({ keyFile, agentName, agentDisplayName }) => {
         const key = JSON.parse(fs.readFileSync(keyFile).toString());
         if (!agentName || typeof agentName !== "string") {
