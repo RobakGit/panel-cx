@@ -26,7 +26,7 @@ export default async function importEntitiesData(agent: Agent) {
       entities = JSON.parse(
         fs
           .readFileSync(
-            `./src/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/entities/pl.json`
+            `./src/botFiles/${agent.projectId}-${agent.agent}/entityTypes/${entity}/entities/${agent.defaultLanguage}.json`
           )
           .toString()
       );

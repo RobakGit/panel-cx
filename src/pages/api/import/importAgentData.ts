@@ -30,6 +30,7 @@ export default async function importAgentData({
         displayName: displayName,
         location: locations,
         startFlow: agentData.startFlow,
+        defaultLanguage: agentData.defaultLanguageCode,
       },
     });
   } else {
@@ -41,6 +42,7 @@ export default async function importAgentData({
         location: locations,
         startFlow: agentData.startFlow,
         keyFilePath: keyFile,
+        defaultLanguage: agentData.defaultLanguageCode,
       },
     });
   }

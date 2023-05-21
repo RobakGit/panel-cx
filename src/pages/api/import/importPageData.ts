@@ -42,6 +42,7 @@ export default async function importPages9iData({
             displayName: pageData.displayName,
             entryFulfillment: pageData.entryFulfillment ?? [],
             transitionRoutes: pageData.transitionRoutes ?? [],
+            form: pageData.form,
           },
         });
       } else {
@@ -52,6 +53,7 @@ export default async function importPages9iData({
             flowId: flow.uid,
             entryFulfillment: pageData.entryFulfillment ?? [],
             transitionRoutes: pageData.transitionRoutes ?? [],
+            form: pageData.form,
           },
         });
       }

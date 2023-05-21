@@ -26,7 +26,7 @@ export default async function importIntentsData(agent: Agent) {
       trainingPhrases = JSON.parse(
         fs
           .readFileSync(
-            `./src/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/trainingPhrases/pl.json`
+            `./src/botFiles/${agent.projectId}-${agent.agent}/intents/${intent}/trainingPhrases/${agent.defaultLanguage}.json`
           )
           .toString()
       ).trainingPhrases;

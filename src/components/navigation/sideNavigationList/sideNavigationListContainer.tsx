@@ -1,20 +1,23 @@
-import {
-  Drawer,
-  Grid,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-} from "@mui/material";
+import { Drawer, Grid, List } from "@mui/material";
 import { useRouter } from "next/router";
+import NavigationListItem from "./navigationListItem";
+import NavigationListDropdownItem from "./navigationListDropdownItem";
 
 const SideNavigationListContainer = (props: {
   HeaderElement?: JSX.Element;
-  listElements: Array<{ displayName: string; uid: string }>;
+  dropdownKey?: string;
+  listElements: Array<
+    | { displayName: string; uid: string }
+    | {
+        displayName: string;
+        uid: string;
+        [key: string]: Array<{ displayName: string; uid: string }> | string;
+      }
+  >;
   selected?: string | undefined;
   type: string;
 }) => {
-  const { HeaderElement, listElements, selected, type } = props;
+  const { HeaderElement, listElements, selected, type, dropdownKey } = props;
   const router = useRouter();
 
   const selectElement = (id: string) => {
@@ -41,24 +44,27 @@ const SideNavigationListContainer = (props: {
       >
         {HeaderElement}
         <List sx={{ wordBreak: "break-all" }}>
-          {listElements.map((item, index) => (
-            <ListItem
-              key={item.uid}
-              disablePadding
-              sx={
-                item.uid === selected
-                  ? { backgroundColor: "background.default" }
-                  : null
-              }
-            >
-              <ListItemButton
-                autoFocus={item.uid === selected}
-                onClick={() => selectElement(item.uid)}
-              >
-                <ListItemText primary={item.displayName} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          {listElements.map((item, index) =>
+            dropdownKey ? (
+              <NavigationListDropdownItem
+                key={item.uid}
+                item={item}
+                dropdownKey={dropdownKey}
+                uid={item.uid}
+                displayName={item.displayName}
+                selected={selected}
+                selectElement={selectElement}
+              />
+            ) : (
+              <NavigationListItem
+                key={item.uid}
+                uid={item.uid}
+                displayName={item.displayName}
+                selected={selected}
+                selectElement={selectElement}
+              />
+            )
+          )}
         </List>
       </Drawer>
     </Grid>
