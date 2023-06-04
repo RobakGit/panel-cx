@@ -9,7 +9,7 @@ export default async function Page(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const { page } = req.query;
     if (!page || typeof page !== "string") {
-      return res.status(badRequest).send({ responseMessage: "No entity" });
+      return res.status(badRequest).send({ responseMessage: "No page" });
     }
     const pageData = await prisma.page.findUnique({
       where: { uid: page },
@@ -25,6 +25,30 @@ export default async function Page(req: NextApiRequest, res: NextApiResponse) {
     );
     return res.status(success).send({ ...pageData, sourcePages });
   } else if (req.method === "POST") {
+    const { page } = req.query;
+    const { displayName, messages } = req.body;
+    if (!page || typeof page !== "string") {
+      return res.status(badRequest).send({ responseMessage: "No page" });
+    }
+
+    const pageData = await prisma.page.findUnique({
+      where: { uid: page },
+    });
+    if (pageData) {
+      let newEntryFulfillment = pageData.entryFulfillment;
+      if (newEntryFulfillment) {
+        newEntryFulfillment.messages = messages;
+      } else {
+        newEntryFulfillment = { messages: messages };
+      }
+
+      return res.status(success).send(
+        await prisma.page.update({
+          where: { uid: page },
+          data: { displayName, entryFulfillment: newEntryFulfillment },
+        })
+      );
+    }
   } else if (req.method === "DELETE") {
     const { page } = req.query;
     if (!page || typeof page !== "string")

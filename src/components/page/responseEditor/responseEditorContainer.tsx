@@ -1,11 +1,13 @@
-import { Chip, Grid, TextField } from "@mui/material";
-import Image from "next/image";
+import { Chip, Grid, IconButton, TextField } from "@mui/material";
 import { useState } from "react";
 import TextEditor from "./textEditor";
+import ButtonEditor from "./buttonEditor";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import ImageEditor from "./imageEditor";
 
 const ResponseEditorContainer = (props: {
   message: {
-    text?: { text: string };
+    text?: { text: Array<string> };
     payload?: {
       richContent?: Array<
         Array<
@@ -23,11 +25,34 @@ const ResponseEditorContainer = (props: {
     };
   };
   index: number;
-  saveMessage: (value: string, index: number) => void;
+  saveMessage: (
+    value: string | { type: string; rawUrl: string; accessibilityText: string },
+    index: number,
+    type: string
+  ) => void;
 }) => {
   const { message, index, saveMessage } = props;
   const editMessage = (value: string) => {
-    saveMessage(value, index);
+    saveMessage(value, index, "text");
+  };
+
+  const editButton = (option: { text: string }, optionIndex: number) => {
+    let options = message.payload.richContent[0][0].options;
+    options[optionIndex] = option;
+    saveMessage(options, index, "button");
+  };
+
+  const removeButton = (optionIndex: number) => {
+    let options = message.payload.richContent[0][0].options;
+    options.splice(optionIndex, 1);
+    saveMessage(options, index, "button");
+  };
+
+  const editImage = (imageData: {
+    rawUrl: string;
+    accessibilityText: string;
+  }) => {
+    saveMessage({ type: "image", ...imageData }, index, "image");
   };
 
   if (message.text) {
@@ -41,6 +66,7 @@ const ResponseEditorContainer = (props: {
         p={2}
         borderRadius={2}
         boxShadow={1}
+        alignItems={"center"}
       >
         <b>{index} </b>
         ilość rotacyjnych: {message.text.text.length}
@@ -64,40 +90,31 @@ const ResponseEditorContainer = (props: {
           rowGap={1}
         >
           <b>{index}-chips- </b>
-          {richContent[0].options?.map(option => (
-            <Grid key={option.text}>
-              <Chip label={option.text} />
-            </Grid>
+          {richContent[0].options?.map((option, i) => (
+            <ButtonEditor
+              key={`${index}-${option.text}-${i}`}
+              index={i}
+              text={option.text}
+              editButton={editButton}
+              removeButton={removeButton}
+            />
           ))}
+          <IconButton
+            onClick={() =>
+              editButton({ text: "" }, richContent[0].options.length)
+            }
+          >
+            <AddCircleIcon color="primary" />
+          </IconButton>
         </Grid>
       );
     } else if (richContent[0] && richContent[0].type === "image") {
       return (
-        <Grid
-          item
-          display={"flex"}
-          flexDirection={"column"}
-          bgcolor={"primary.contrastText"}
-          m={1}
-          p={2}
-          borderRadius={2}
-          boxShadow={1}
-          alignItems={"center"}
-        >
-          <b>{index}-imageRich- </b>
-          <Image
-            src={richContent[0].rawUrl}
-            alt={richContent[0].accessibilityText}
-            width={300}
-            height={200}
-          />
-          <TextField fullWidth label="url" value={richContent[0].rawUrl} />
-          <TextField
-            fullWidth
-            label="accessibilityText"
-            value={richContent[0].accessibilityText}
-          />
-        </Grid>
+        <ImageEditor
+          index={index}
+          imageData={richContent[0]}
+          editImage={editImage}
+        />
       );
     } else {
       return (

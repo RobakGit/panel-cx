@@ -24,8 +24,10 @@ const RouteTarget = (props: {
     uid: string;
     page: Array<{ displayName: string; uid: string }>;
   }>;
+  routeToPage: (uid: string) => void;
 }) => {
-  const { targetPage, targetFlow, actualFlow, pagesOnFlow } = props;
+  const { targetPage, targetFlow, actualFlow, pagesOnFlow, routeToPage } =
+    props;
   const [targetType, setTargetType] = useState(targetFlow ? "flow" : "page");
 
   return (
@@ -56,19 +58,39 @@ const RouteTarget = (props: {
             </Select>
           </FormControl>
         ) : (
-          <FormControl fullWidth>
-            <InputLabel id={"targetSelectorLabel"}>Page</InputLabel>
-            <Select label="targetSelectorLabel" value={targetPage}>
-              <MenuItem disabled value="">
-                Wybierz page
-              </MenuItem>
-              {actualFlow.page.map(page => (
-                <MenuItem key={page.displayName} value={page.displayName}>
-                  {page.displayName}
+          <>
+            {targetPage && (
+              <span
+                onClick={() => {
+                  const page = actualFlow.page.find(
+                    page => page.displayName === targetPage
+                  );
+                  if (page) routeToPage(page.uid);
+                }}
+                style={{
+                  display: "flex",
+                  justifyContent: "end",
+                  padding: "0.6rem",
+                  cursor: "pointer",
+                }}
+              >
+                <ins>przejdz do page'a</ins>
+              </span>
+            )}
+            <FormControl fullWidth>
+              <InputLabel id={"targetSelectorLabel"}>Page</InputLabel>
+              <Select label="targetSelectorLabel" value={targetPage}>
+                <MenuItem disabled value="">
+                  Wybierz page
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                {actualFlow.page.map(page => (
+                  <MenuItem key={page.displayName} value={page.displayName}>
+                    {page.displayName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </>
         )}
       </Grid>
     </Grid>

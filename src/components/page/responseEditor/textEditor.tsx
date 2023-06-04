@@ -1,4 +1,11 @@
-import { FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material";
+import {
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+} from "@mui/material";
 import { useState } from "react";
 import {
   CompositeDecorator,
@@ -7,9 +14,14 @@ import {
   Editor,
   EditorState,
   convertFromHTML,
+  RichUtils,
 } from "draft-js";
 import React from "react";
 import { stateToHTML } from "draft-js-export-html";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import LinkIcon from "@mui/icons-material/Link";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 
 const TextEditor = (props: {
   text: string;
@@ -75,15 +87,45 @@ const TextEditor = (props: {
     editMessage(convertHtmlText(stateToHTML(editorState.getCurrentContent())));
   };
 
+  const onBoldClick = () => {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, "BOLD"));
+  };
+
+  const toggleUnorderedList = () => {
+    setEditorState(
+      RichUtils.toggleBlockType(editorState, "unordered-list-item")
+    );
+  };
+
+  const toggleOrderedList = () => {
+    setEditorState(RichUtils.toggleBlockType(editorState, "ordered-list-item"));
+  };
+
   return (
-    <div onClick={focusEditor}>
-      <Editor
-        ref={editor}
-        editorState={editorState}
-        onChange={editorState => setEditorState(editorState)}
-        onBlur={blur}
-      />
-    </div>
+    <>
+      <Grid item container direction={"row"} justifyContent={"end"}>
+        <IconButton onClick={onBoldClick}>
+          <FormatBoldIcon />
+        </IconButton>
+        <IconButton onClick={onBoldClick}>
+          <LinkIcon />
+        </IconButton>
+        <IconButton onClick={toggleOrderedList}>
+          <FormatListNumberedIcon />
+        </IconButton>
+        <IconButton onClick={toggleUnorderedList}>
+          <FormatListBulletedIcon />
+        </IconButton>
+      </Grid>
+      <div onClick={focusEditor} style={{ width: "100%" }}>
+        <Editor
+          ref={editor}
+          editorState={editorState}
+          onChange={editorState => setEditorState(editorState)}
+          onBlur={blur}
+        />
+      </div>
+    </>
   );
 };
 

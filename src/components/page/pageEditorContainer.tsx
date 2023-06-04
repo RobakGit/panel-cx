@@ -1,8 +1,22 @@
 import { getActualAgent } from "@/localStorage/locatStorage";
-import { Box, Button, Chip, Grid, Paper, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  Chip,
+  Grid,
+  IconButton,
+  Paper,
+  TextField,
+  Checkbox,
+} from "@mui/material";
 import { ChangeEvent, useEffect, useState } from "react";
 import ResponseEditorContainer from "./responseEditor/responseEditorContainer";
 import RouteEditorContainer from "./routeEditor/routeEditorContainer";
+import DraggableResponse from "./responseEditor/draggableResponse";
+import { useRouter } from "next/router";
+import NewResponseBlock from "./responseEditor/newResponseBlock";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { v4 as uuidv4 } from "uuid";
 
 const PageEditorContainer = (props: {
   page: string | undefined;
@@ -13,6 +27,7 @@ const PageEditorContainer = (props: {
   }>;
 }) => {
   const { page, pagesOnFlow } = props;
+  const router = useRouter();
   const [name, setName] = useState("");
   const [messages, setMessages] = useState([]);
   const [transitionRoutes, setTransitionRoutes] = useState<
@@ -102,11 +117,14 @@ const PageEditorContainer = (props: {
     fetch(`/api/page/${page}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName: name, agent }),
+      body: JSON.stringify({ displayName: name, agent, messages }),
     })
       .then(data => data.json())
       .then(data => {
         setName(data.displayName);
+        setMessages(data.entryFulfillment.messages);
+        setTransitionRoutes(data.transitionRoutes);
+        setParameters(data.form.parameters);
       });
   };
 
@@ -119,12 +137,43 @@ const PageEditorContainer = (props: {
       .then(data => {});
   };
 
-  const saveTextMessage = (value: string, index: number) => {
+  const saveMessage = (
+    value: string | { type: string; rawUrl: string; accessibilityText: string },
+    index: number,
+    type: string
+  ) => {
     if (messages && messages[index]) {
       let tempMessages = messages;
-      tempMessages[index].text.text[0] = value;
-      setMessages(tempMessages);
+      if (type === "text") {
+        tempMessages[index].text.text[0] = value;
+      }
+      if (type === "button") {
+        tempMessages[index].payload.richContent[0][0].options = value;
+      }
+      if (type === "image" && typeof value === "object") {
+        tempMessages[index].payload.richContent[0][0] = value;
+      }
+      setMessages([...tempMessages]);
     }
+  };
+
+  const routeToPage = (uid: string) => {
+    router.query["page"] = uid;
+    router.push(router);
+  };
+
+  const addResponseBlock = (newBlock: any) => {
+    if (messages) {
+      setMessages([...messages, newBlock]);
+    } else {
+      setMessages([newBlock]);
+    }
+  };
+
+  const removeResponseBlock = (index: number) => {
+    let newMessages = messages;
+    messages.splice(index, 1);
+    setMessages([...newMessages]);
   };
 
   return (
@@ -141,6 +190,7 @@ const PageEditorContainer = (props: {
             sx={{ backgroundColor: "primary.contrastText", boxShadow: 1 }}
             key={`${sourcePage.uid}-chip`}
             label={sourcePage.displayName}
+            onClick={() => routeToPage(sourcePage.uid)}
           />
         ))}
       </Grid>
@@ -170,16 +220,42 @@ const PageEditorContainer = (props: {
           Odpowiedź
           {messages &&
             messages.map((message, i) => (
-              <ResponseEditorContainer
-                key={i}
-                message={message}
-                index={i}
-                saveMessage={saveTextMessage}
-              />
+              <div key={uuidv4()} style={{ position: "relative" }}>
+                <IconButton
+                  sx={{ position: "absolute", right: 0 }}
+                  onClick={() => removeResponseBlock(i)}
+                >
+                  <CancelIcon />
+                </IconButton>
+                <ResponseEditorContainer
+                  message={message}
+                  index={i}
+                  saveMessage={saveMessage}
+                />
+              </div>
             ))}
+          <NewResponseBlock addResponseBlock={addResponseBlock} />
         </Grid>
         <Grid item xs={5}>
           Parametry
+          {parameters?.map(parameter => (
+            <Paper key={uuidv4()}>
+              <TextField value={parameter.displayName} />
+              <TextField value={parameter.entityType} />
+              <Checkbox checked={parameter.required} />
+              {parameter.fillBehavior.initialPromptFulfillment &&
+                parameter.fillBehavior.initialPromptFulfillment.messages &&
+                parameter.fillBehavior.initialPromptFulfillment.messages.map(
+                  (message, i) => (
+                    <ResponseEditorContainer
+                      key={uuidv4()}
+                      message={message}
+                      index={i}
+                    />
+                  )
+                )}
+            </Paper>
+          ))}
           <Paper sx={{ wordWrap: "break-word" }}>
             {JSON.stringify(parameters)}
           </Paper>
@@ -204,6 +280,7 @@ const PageEditorContainer = (props: {
                 intents={intents}
                 pagesOnFlow={pagesOnFlow}
                 actualFlow={actualFlow}
+                routeToPage={routeToPage}
               />
             ))}
         </Grid>

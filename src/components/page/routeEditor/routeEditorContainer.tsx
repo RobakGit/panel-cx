@@ -57,8 +57,9 @@ const RouteEditorContainer = (props: {
     uid: string;
     page: Array<{ displayName: string; uid: string }>;
   };
+  routeToPage: (uid: string) => void;
 }) => {
-  const { route, intents, pagesOnFlow, actualFlow } = props;
+  const { route, intents, pagesOnFlow, actualFlow, routeToPage } = props;
 
   return (
     <Grid item xs={5}>
@@ -76,6 +77,7 @@ const RouteEditorContainer = (props: {
             targetFlow={route.targetFlow}
             actualFlow={actualFlow}
             pagesOnFlow={pagesOnFlow}
+            routeToPage={routeToPage}
           />
           <RouteSetParameters
             setParameterActions={route.triggerFulfillment.setParameterActions}
