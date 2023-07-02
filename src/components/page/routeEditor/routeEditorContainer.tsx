@@ -58,8 +58,16 @@ const RouteEditorContainer = (props: {
     page: Array<{ displayName: string; uid: string }>;
   };
   routeToPage: (uid: string) => void;
+  saveTransitionRoute: (value: {}, index: number) => void;
 }) => {
-  const { route, intents, pagesOnFlow, actualFlow, routeToPage } = props;
+  const {
+    route,
+    intents,
+    pagesOnFlow,
+    actualFlow,
+    routeToPage,
+    saveTransitionRoute,
+  } = props;
 
   return (
     <Grid item xs={5}>

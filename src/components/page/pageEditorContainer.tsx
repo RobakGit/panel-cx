@@ -16,6 +16,7 @@ import DraggableResponse from "./responseEditor/draggableResponse";
 import { useRouter } from "next/router";
 import NewResponseBlock from "./responseEditor/newResponseBlock";
 import CancelIcon from "@mui/icons-material/Cancel";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { v4 as uuidv4 } from "uuid";
 
 const PageEditorContainer = (props: {
@@ -112,9 +113,9 @@ const PageEditorContainer = (props: {
     setName(event.target.value);
   };
 
-  const savePage = () => {
+  const savePage = async () => {
     const agent = getActualAgent();
-    fetch(`/api/page/${page}`, {
+    await fetch(`/api/page/${page}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ displayName: name, agent, messages }),
@@ -128,8 +129,8 @@ const PageEditorContainer = (props: {
       });
   };
 
-  const removePage = () => {
-    fetch(`/api/page/${page}`, {
+  const removePage = async () => {
+    await fetch(`/api/page/${page}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     })
@@ -174,6 +175,22 @@ const PageEditorContainer = (props: {
     let newMessages = messages;
     messages.splice(index, 1);
     setMessages([...newMessages]);
+  };
+
+  const addTransitionRoute = (newBlock: any) => {
+    if (transitionRoutes) {
+      setTransitionRoutes([newBlock, ...transitionRoutes]);
+    } else {
+      setTransitionRoutes([newBlock]);
+    }
+  };
+
+  const saveTransitionRoute = (value: {}, index: number) => {
+    let tempTransitionRoutes = transitionRoutes;
+    if (tempTransitionRoutes && tempTransitionRoutes[index]) {
+      tempTransitionRoutes[index] = value;
+      setTransitionRoutes(tempTransitionRoutes);
+    }
   };
 
   return (
@@ -272,15 +289,40 @@ const PageEditorContainer = (props: {
           wrap="nowrap"
           gap={5}
         >
+          <Grid item xs={5}>
+            <Paper
+              sx={{ m: 1, p: 2, display: "flex", flexDirection: "column" }}
+            >
+              <Grid
+                container
+                spacing={2}
+                xs={12}
+                width={"100vw"}
+                minHeight={"10rem"}
+              >
+                <IconButton
+                  onClick={() =>
+                    addTransitionRoute({
+                      name: "",
+                      triggerFulfillment: { messages: [] },
+                    })
+                  }
+                >
+                  <AddCircleIcon color="primary" />
+                </IconButton>
+              </Grid>
+            </Paper>
+          </Grid>
           {actualFlow &&
             transitionRoutes.map((route, i) => (
               <RouteEditorContainer
-                key={`route-${i}`}
+                key={`route-${i}-${JSON.stringify(route)}`}
                 route={route}
                 intents={intents}
                 pagesOnFlow={pagesOnFlow}
                 actualFlow={actualFlow}
                 routeToPage={routeToPage}
+                saveTransitionRoute={saveTransitionRoute}
               />
             ))}
         </Grid>
