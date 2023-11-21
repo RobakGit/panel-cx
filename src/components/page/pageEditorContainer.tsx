@@ -1,13 +1,11 @@
 import { getActualAgent } from "@/localStorage/locatStorage";
 import {
-  Box,
   Button,
   Chip,
   Grid,
   IconButton,
   Paper,
   TextField,
-  Checkbox,
 } from "@mui/material";
 import { ChangeEvent, useEffect, useState } from "react";
 import ResponseEditorContainer from "./responseEditor/responseEditorContainer";
@@ -18,6 +16,7 @@ import NewResponseBlock from "./responseEditor/newResponseBlock";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { v4 as uuidv4 } from "uuid";
+import ParameterContainer from "./parameterEditor/parameterContainer";
 
 const PageEditorContainer = (props: {
   page: string | undefined;
@@ -118,7 +117,13 @@ const PageEditorContainer = (props: {
     await fetch(`/api/page/${page}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName: name, agent, messages }),
+      body: JSON.stringify({
+        displayName: name,
+        agent,
+        messages,
+        transitionRoutes,
+        parameters,
+      }),
     })
       .then(data => data.json())
       .then(data => {
@@ -147,6 +152,7 @@ const PageEditorContainer = (props: {
       let tempMessages = messages;
       if (type === "text") {
         tempMessages[index].text.text[0] = value;
+        return setMessages(tempMessages);
       }
       if (type === "button") {
         tempMessages[index].payload.richContent[0][0].options = value;
@@ -155,6 +161,22 @@ const PageEditorContainer = (props: {
         tempMessages[index].payload.richContent[0][0] = value;
       }
       setMessages([...tempMessages]);
+    }
+  };
+
+  const saveParameters = (
+    parameters: Array<{
+      displayName: string;
+      entityType: string;
+      required: boolean;
+      fillBehavior: {};
+    }>,
+    isReloadRequired: boolean
+  ) => {
+    if (isReloadRequired) {
+      setParameters([...parameters]);
+    } else {
+      setParameters(parameters);
     }
   };
 
@@ -173,7 +195,7 @@ const PageEditorContainer = (props: {
 
   const removeResponseBlock = (index: number) => {
     let newMessages = messages;
-    messages.splice(index, 1);
+    newMessages.splice(index, 1);
     setMessages([...newMessages]);
   };
 
@@ -189,8 +211,14 @@ const PageEditorContainer = (props: {
     let tempTransitionRoutes = transitionRoutes;
     if (tempTransitionRoutes && tempTransitionRoutes[index]) {
       tempTransitionRoutes[index] = value;
-      setTransitionRoutes(tempTransitionRoutes);
+      setTransitionRoutes([...tempTransitionRoutes]);
     }
+  };
+
+  const removeTransitionRoute = (index: number) => {
+    let newTransitionRoutes = transitionRoutes;
+    newTransitionRoutes.splice(index, 1);
+    setTransitionRoutes([...newTransitionRoutes]);
   };
 
   return (
@@ -232,7 +260,7 @@ const PageEditorContainer = (props: {
           </Grid>
         </Grid>
       </Grid>
-      <Grid item container direction={"row"}>
+      <Grid item container spacing={2} direction={"row"}>
         <Grid item container direction={"column"} xs={7}>
           Odpowiedź
           {messages &&
@@ -253,30 +281,10 @@ const PageEditorContainer = (props: {
             ))}
           <NewResponseBlock addResponseBlock={addResponseBlock} />
         </Grid>
-        <Grid item xs={5}>
-          Parametry
-          {parameters?.map(parameter => (
-            <Paper key={uuidv4()}>
-              <TextField value={parameter.displayName} />
-              <TextField value={parameter.entityType} />
-              <Checkbox checked={parameter.required} />
-              {parameter.fillBehavior.initialPromptFulfillment &&
-                parameter.fillBehavior.initialPromptFulfillment.messages &&
-                parameter.fillBehavior.initialPromptFulfillment.messages.map(
-                  (message, i) => (
-                    <ResponseEditorContainer
-                      key={uuidv4()}
-                      message={message}
-                      index={i}
-                    />
-                  )
-                )}
-            </Paper>
-          ))}
-          <Paper sx={{ wordWrap: "break-word" }}>
-            {JSON.stringify(parameters)}
-          </Paper>
-        </Grid>
+        <ParameterContainer
+          parameters={parameters}
+          saveParameters={saveParameters}
+        />
       </Grid>
       <Grid item container>
         Ścieżki
@@ -289,18 +297,24 @@ const PageEditorContainer = (props: {
           wrap="nowrap"
           gap={5}
         >
-          <Grid item xs={5}>
+          <Grid item xs={3}>
             <Paper
               sx={{ m: 1, p: 2, display: "flex", flexDirection: "column" }}
             >
               <Grid
                 container
+                item
                 spacing={2}
                 xs={12}
                 width={"100vw"}
                 minHeight={"10rem"}
+                display={"flex"}
+                alignItems={"center"}
+                justifyContent={"center"}
               >
                 <IconButton
+                  aria-label="add"
+                  size="large"
                   onClick={() =>
                     addTransitionRoute({
                       name: "",
@@ -308,7 +322,7 @@ const PageEditorContainer = (props: {
                     })
                   }
                 >
-                  <AddCircleIcon color="primary" />
+                  <AddCircleIcon color="primary" fontSize="large" />
                 </IconButton>
               </Grid>
             </Paper>
@@ -317,12 +331,14 @@ const PageEditorContainer = (props: {
             transitionRoutes.map((route, i) => (
               <RouteEditorContainer
                 key={`route-${i}-${JSON.stringify(route)}`}
+                transitionIndex={i}
                 route={route}
                 intents={intents}
                 pagesOnFlow={pagesOnFlow}
                 actualFlow={actualFlow}
                 routeToPage={routeToPage}
                 saveTransitionRoute={saveTransitionRoute}
+                removeTransitionRoute={removeTransitionRoute}
               />
             ))}
         </Grid>
