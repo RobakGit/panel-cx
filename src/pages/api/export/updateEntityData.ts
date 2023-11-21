@@ -1,7 +1,9 @@
 import { Agent, kind } from "@prisma/client";
 import fs from "fs";
+import fsPromises from "fs/promises";
 import prisma from "@/services/prisma";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { rimraf } from "rimraf";
 
 function findDirectory(path: string, entityUid: string) {
   const entities = fs.readdirSync(path);
@@ -64,20 +66,57 @@ export default async function updateEntityData(agent: Agent) {
     },
   });
 
+  const existingEntityList: string[] = [];
+
   for (const entity of entities) {
     const entityDir = findDirectory(path, entity.name);
-    updateEntity(
-      path,
-      entityDir,
-      entity.displayName,
-      entity.kind,
-      entity.enableFuzzyExtraction
+    if (entityDir) {
+      existingEntityList.push(entityDir);
+      updateEntity(
+        path,
+        entityDir,
+        entity.displayName,
+        entity.kind,
+        entity.enableFuzzyExtraction
+      );
+      updateEntitySynonyms(
+        path,
+        entityDir,
+        agent.defaultLanguage,
+        entity.entities
+      );
+    } else {
+      existingEntityList.push(entity.displayName);
+      const newEntityDir = `${path}/${entity.displayName}`;
+      await fsPromises.mkdir(newEntityDir);
+      await fsPromises.mkdir(`${newEntityDir}/entities`);
+      await fsPromises.writeFile(
+        `${newEntityDir}/${entity.displayName}.json`,
+        JSON.stringify({ name: entity.name }, null, 2)
+      );
+      updateEntity(
+        path,
+        entity.displayName,
+        entity.displayName,
+        entity.kind,
+        entity.enableFuzzyExtraction
+      );
+      await fsPromises.writeFile(
+        `${newEntityDir}/entities/${agent.defaultLanguage}.json`,
+        JSON.stringify({ entities: [] }, null, 2)
+      );
+      updateEntitySynonyms(
+        path,
+        entity.displayName,
+        agent.defaultLanguage,
+        entity.entities
+      );
+    }
+    const EntitiesToRemove = (await fsPromises.readdir(path)).filter(
+      dir => !existingEntityList.includes(dir)
     );
-    updateEntitySynonyms(
-      path,
-      entityDir,
-      agent.defaultLanguage,
-      entity.entities
-    );
+    for (const entityToRemove of EntitiesToRemove) {
+      await rimraf(`${path}/${entityToRemove}`);
+    }
   }
 }
