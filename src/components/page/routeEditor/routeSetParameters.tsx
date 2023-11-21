@@ -11,10 +11,10 @@ const RouteSetParameters = (props: {
       {setParameterActions &&
         setParameterActions.map(param => (
           <Grid item key={param.parameter} container direction={"row"}>
-            <Grid xs={6}>
+            <Grid item xs={6}>
               <TextField label="Nazwa" value={param.parameter} />
             </Grid>
-            <Grid xs={6}>
+            <Grid item xs={6}>
               <TextField label="Wartość" value={param.value} />
             </Grid>
           </Grid>

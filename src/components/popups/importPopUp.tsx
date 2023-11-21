@@ -12,7 +12,8 @@ import {
 } from "@mui/material";
 import { Portal } from "@mui/base";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import { getActualAgent } from "@/localStorage/locatStorage";
 
 const ImportPopUp = (props: {
   isImportOpen: boolean;
@@ -26,13 +27,22 @@ const ImportPopUp = (props: {
   const [requestStatus, setRequestStatus] = useState<"success" | "error">();
   const [alertMessage, setAllertMessage] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [actualAgent, setActualAgent] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isImportOpen) setActualAgent(getActualAgent());
+  }, [isImportOpen]);
 
   const importAgent = () => {
-    if (!attachment) return;
     const data = new FormData();
-    data.append("agentName", agentName);
-    data.append("agentDisplayName", agentDisplayName);
-    data.append("key", attachment);
+    if (actualAgent) {
+      data.append("agentUid", actualAgent);
+    }
+    if (attachment) {
+      data.append("agentName", agentName);
+      data.append("agentDisplayName", agentDisplayName);
+      data.append("key", attachment);
+    }
     fetch("/api/import", {
       method: "POST",
       body: data,
@@ -82,45 +92,51 @@ const ImportPopUp = (props: {
           }}
         >
           <List>
-            <ListItem sx={{ display: "flex", justifyContent: "center" }}>
-              <TextField
-                required
-                label="Nazwa agenta z dialogflow"
-                variant="standard"
-                fullWidth
-                value={agentName}
-                onChange={e => setAgentName(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Tooltip
-                        sx={{ cursor: "help" }}
-                        title="Wybierz projekt na dialogflow, następnie przy wyborze agenta kliknij trzy kropki z rozwijanym menu i skopiuj nazwę"
-                      >
-                        <InfoOutlinedIcon color="primary" />
-                      </Tooltip>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </ListItem>
-            <ListItem sx={{ display: "flex", justifyContent: "center" }}>
-              <TextField
-                required
-                label="Nazwa własna agenta"
-                variant="standard"
-                fullWidth
-                value={agentDisplayName}
-                onChange={e => setAgentDisplayName(e.target.value)}
-              />
-            </ListItem>
-            <ListItem sx={{ display: "flex", justifyContent: "right" }}>
-              {attachment?.name}
-              <Button variant="contained" component="label">
-                Upload File
-                <input type="file" hidden onChange={handleFile} />
-              </Button>
-            </ListItem>
+            {actualAgent ? (
+              actualAgent
+            ) : (
+              <>
+                <ListItem sx={{ display: "flex", justifyContent: "center" }}>
+                  <TextField
+                    required
+                    label="Nazwa agenta z dialogflow"
+                    variant="standard"
+                    fullWidth
+                    value={agentName}
+                    onChange={e => setAgentName(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Tooltip
+                            sx={{ cursor: "help" }}
+                            title="Wybierz projekt na dialogflow, następnie przy wyborze agenta kliknij trzy kropki z rozwijanym menu i skopiuj nazwę"
+                          >
+                            <InfoOutlinedIcon color="primary" />
+                          </Tooltip>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </ListItem>
+                <ListItem sx={{ display: "flex", justifyContent: "center" }}>
+                  <TextField
+                    required
+                    label="Nazwa własna agenta"
+                    variant="standard"
+                    fullWidth
+                    value={agentDisplayName}
+                    onChange={e => setAgentDisplayName(e.target.value)}
+                  />
+                </ListItem>
+                <ListItem sx={{ display: "flex", justifyContent: "right" }}>
+                  {attachment?.name}
+                  <Button variant="contained" component="label">
+                    Upload File
+                    <input type="file" hidden onChange={handleFile} />
+                  </Button>
+                </ListItem>
+              </>
+            )}
             <ListItem sx={{ display: "flex", justifyContent: "right" }}>
               <Button variant="contained" sx={{ m: 2 }} onClick={importAgent}>
                 Importuj

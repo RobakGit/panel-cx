@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
+import fsPromises from "fs/promises";
 import { AgentsClient } from "@google-cloud/dialogflow-cx";
 import StreamZip from "node-stream-zip";
 import prisma from "@/services/prisma";
@@ -36,7 +37,25 @@ export default async function DialogflowImport(
         }) => void,
         reject: (reason: string) => void
       ) => {
-        form.parse(req, (err, _fields, files) => {
+        form.parse(req, async (err, _fields, files) => {
+          if (_fields.agentUid && typeof _fields.agentUid === "string") {
+            const agent = await prisma.agent.findUnique({
+              where: { uid: _fields.agentUid },
+              select: {
+                keyFilePath: true,
+                agent: true,
+                displayName: true,
+                location: true,
+              },
+            });
+            if (agent) {
+              return resolve({
+                keyFile: agent.keyFilePath,
+                agentName: `projects/${agent.displayName}/locations/${agent.location}/agents/${agent.agent}`,
+                agentDisplayName: agent.displayName,
+              });
+            }
+          }
           if (!_fields.agentName || !files.key)
             return reject("!_fields.agentName || files.key");
           if (
@@ -48,8 +67,8 @@ export default async function DialogflowImport(
           const key: formidable.File = files.key;
           if (!key.filepath) return reject("!key.filepath");
           const keyFile = `./src/keys/${key.originalFilename}`;
-          fs.copyFileSync(key.filepath, keyFile);
-          resolve({
+          await fsPromises.copyFile(key.filepath, keyFile);
+          return resolve({
             keyFile,
             agentName: _fields.agentName,
             agentDisplayName: _fields.agentDisplayName,

@@ -7,6 +7,7 @@ import {
   Radio,
   RadioGroup,
   Select,
+  SelectChangeEvent,
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -25,10 +26,24 @@ const RouteTarget = (props: {
     page: Array<{ displayName: string; uid: string }>;
   }>;
   routeToPage: (uid: string) => void;
+  saveRouteTarget: (target: string, type: string) => void;
 }) => {
-  const { targetPage, targetFlow, actualFlow, pagesOnFlow, routeToPage } =
-    props;
+  const {
+    targetPage,
+    targetFlow,
+    actualFlow,
+    pagesOnFlow,
+    routeToPage,
+    saveRouteTarget,
+  } = props;
   const [targetType, setTargetType] = useState(targetFlow ? "flow" : "page");
+  const [target, setTarget] = useState(targetFlow ? targetFlow : targetPage);
+
+  const changeTarget = (event: SelectChangeEvent<string>) => {
+    const newTarget = event.target.value;
+    setTarget(newTarget);
+    saveRouteTarget(newTarget, targetType);
+  };
 
   return (
     <Grid item container>
@@ -46,7 +61,11 @@ const RouteTarget = (props: {
         {targetType === "flow" ? (
           <FormControl fullWidth>
             <InputLabel id={"targetSelectorLabel"}>Flow</InputLabel>
-            <Select label="targetSelectorLabel" value={targetFlow}>
+            <Select
+              label="targetSelectorLabel"
+              value={target}
+              onChange={changeTarget}
+            >
               <MenuItem disabled value="">
                 Wybierz flow
               </MenuItem>
@@ -79,7 +98,11 @@ const RouteTarget = (props: {
             )}
             <FormControl fullWidth>
               <InputLabel id={"targetSelectorLabel"}>Page</InputLabel>
-              <Select label="targetSelectorLabel" value={targetPage}>
+              <Select
+                label="targetSelectorLabel"
+                value={target ?? ""}
+                onChange={changeTarget}
+              >
                 <MenuItem disabled value="">
                   Wybierz page
                 </MenuItem>
@@ -88,6 +111,7 @@ const RouteTarget = (props: {
                     {page.displayName}
                   </MenuItem>
                 ))}
+                <MenuItem value="End Session">End Session</MenuItem>
               </Select>
             </FormControl>
           </>

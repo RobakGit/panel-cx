@@ -55,7 +55,7 @@ const NewResponseBlock = (props: {
       boxShadow={1}
       alignItems={"center"}
       sx={active ? { maxHeight: 1000 } : { maxHeight: 100 }}
-      style={{ transition: "all 0.3s linear" }}
+      style={{ transition: "all 0.3s linear", width: "100%" }}
     >
       {active ? (
         <Grid item container position={"relative"}>
