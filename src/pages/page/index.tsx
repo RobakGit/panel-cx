@@ -1,5 +1,7 @@
 import EntityEditorContainer from "@/components/entity/entityEditorContainer";
+import FlowEditorContainer from "@/components/flow/flowEditorContainer";
 import EntityListHeader from "@/components/navigation/header/entityListHeader";
+import FlowListHeader from "@/components/navigation/header/flowListHeader";
 import SideNavigationListContainer from "@/components/navigation/sideNavigationList/sideNavigationListContainer";
 import PageEditorContainer from "@/components/page/pageEditorContainer";
 import { getActualAgent } from "@/localStorage/locatStorage";
@@ -9,7 +11,7 @@ import { useEffect, useState } from "react";
 
 export default function Page() {
   const router = useRouter();
-  const { page } = router.query;
+  const { page, flow } = router.query;
 
   const [pagesOnFlow, setPagesOnFlow] = useState<
     Array<{
@@ -35,16 +37,28 @@ export default function Page() {
   return (
     <Grid container direction={"row"} sx={{ height: "100%" }}>
       <SideNavigationListContainer
+        HeaderElement={<FlowListHeader />}
         listElements={pagesOnFlow}
         dropdownKey="page"
+        dropdownParentKey="flow"
         type="page"
-        selected={page?.toString()}
+        parentType="flow"
+        selected={flow?.toString() || page?.toString()}
+        newElementText={"Dodaj page"}
       />
       <Grid item xs={10} sx={{ height: "100%", overflowY: "auto" }}>
-        <PageEditorContainer
-          page={page?.toString()}
-          pagesOnFlow={pagesOnFlow}
-        />
+        {page ? (
+          <PageEditorContainer
+            page={page?.toString()}
+            flow={flow?.toString()}
+            pagesOnFlow={pagesOnFlow}
+          />
+        ) : (
+          <FlowEditorContainer
+            flow={flow?.toString()}
+            pagesOnFlow={pagesOnFlow}
+          />
+        )}
       </Grid>
     </Grid>
   );

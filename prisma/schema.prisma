@@ -28,7 +28,7 @@ model Agent {
 
 model Flow {
     uid         String   @unique @default(uuid()) @db.Uuid
-    name        String   @db.Uuid
+    name        String   @default(uuid()) @db.Uuid
     displayName String   @map("display_name")
     agentId     String   @map("agent_id") @db.Uuid
     nluSettings Json
@@ -44,12 +44,12 @@ model Flow {
 
 model Page {
     uid              String   @unique @default(uuid()) @db.Uuid
-    name             String   @db.Uuid
+    name             String   @default(uuid()) @db.Uuid
     displayName      String   @map("display_name")
     flowId           String   @map("flow_id") @db.Uuid
-    entryFulfillment Json
+    entryFulfillment Json     @default("{}")
     transitionRoutes Json[]
-    form             Json
+    form             Json     @default("{}")
     createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
     updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 

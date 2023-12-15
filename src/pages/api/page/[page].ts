@@ -26,15 +26,28 @@ export default async function Page(req: NextApiRequest, res: NextApiResponse) {
     return res.status(success).send({ ...pageData, sourcePages });
   } else if (req.method === "POST") {
     const { page } = req.query;
-    const { displayName, messages, transitionRoutes, parameters } = req.body;
+    const { displayName, messages, transitionRoutes, parameters, flow } =
+      req.body;
     if (!page || typeof page !== "string") {
       return res.status(badRequest).send({ responseMessage: "No page" });
     }
 
-    const pageData = await prisma.page.findUnique({
-      where: { uid: page },
-      select: { entryFulfillment: true, flow: true },
-    });
+    let pageData;
+    if (page === "new") {
+      if (!flow || typeof flow !== "string") {
+        return res.status(badRequest).send({ responseMessage: "Unknown flow" });
+      }
+      pageData = await prisma.page.create({
+        data: { displayName, flowId: flow },
+        select: { uid: true, entryFulfillment: true, flow: true },
+      });
+    } else {
+      pageData = await prisma.page.findUnique({
+        where: { uid: page },
+        select: { uid: true, entryFulfillment: true, flow: true },
+      });
+    }
+
     if (pageData) {
       let newEntryFulfillment = pageData.entryFulfillment;
       const agent = await prisma.agent.findFirst({
@@ -68,7 +81,7 @@ export default async function Page(req: NextApiRequest, res: NextApiResponse) {
       });
 
       let newParameters = parameters;
-      newParameters = newParameters.map(parameter => {
+      newParameters = newParameters?.map(parameter => {
         let newParameter =
           parameter.fillBehavior.initialPromptFulfillment.messages.map(
             message => {
@@ -86,7 +99,7 @@ export default async function Page(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(success).send(
         await prisma.page.update({
-          where: { uid: page },
+          where: { uid: pageData.uid },
           data: {
             displayName,
             entryFulfillment: newEntryFulfillment,
@@ -100,6 +113,31 @@ export default async function Page(req: NextApiRequest, res: NextApiResponse) {
     const { page } = req.query;
     if (!page || typeof page !== "string")
       return res.status(badRequest).send("badRequest");
+
+    const pageData = await prisma.page.findUnique({
+      where: { uid: page },
+    });
+
+    let sourcePages = await prisma.page.findMany({
+      where: { flowId: pageData?.flowId },
+      select: { uid: true, displayName: true, transitionRoutes: true },
+    });
+    sourcePages = sourcePages.filter(source =>
+      source.transitionRoutes.find(
+        route => route["targetPage"] === pageData?.displayName
+      )
+    );
+
+    for (const sourcePage of sourcePages) {
+      await prisma.page.update({
+        where: { uid: sourcePage.uid },
+        data: {
+          transitionRoutes: sourcePage.transitionRoutes.filter(
+            route => route["targetPage"] !== pageData?.displayName
+          ),
+        },
+      });
+    }
     return res
       .status(success)
       .send(await prisma.page.delete({ where: { uid: page } }));
