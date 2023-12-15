@@ -1,13 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import { AgentsClient } from "@google-cloud/dialogflow-cx";
-import StreamZip from "node-stream-zip";
 import prisma from "@/services/prisma";
-import formidable from "formidable";
 import createExportZipFile from "./createExportZipFile";
 import updateIntentData from "./updateIntentData";
 import updateEntityData from "./updateEntityData";
 import updatePageData from "./updatePageData";
+import updateFlowData from "./updateFlowData";
 
 const success = 200;
 const notFound = 404;
@@ -31,12 +30,10 @@ export default async function DialogflowExport(
       keyFilename: agentData.keyFilePath,
     });
 
-    //TODO update agent files
     await updateIntentData(agentData);
     await updateEntityData(agentData);
+    await updateFlowData(agentData);
     await updatePageData(agentData);
-    // console.log(updatedIntents);
-    //TODO update agent files
 
     const agentZip = await createExportZipFile(
       `./src/botFiles/${agentData.projectId}-${agentData.agent}`

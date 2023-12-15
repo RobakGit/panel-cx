@@ -20,13 +20,14 @@ import ParameterContainer from "./parameterEditor/parameterContainer";
 
 const PageEditorContainer = (props: {
   page: string | undefined;
+  flow: string | undefined;
   pagesOnFlow: Array<{
     displayName: string;
     uid: string;
     page: Array<{ displayName: string; uid: string }>;
   }>;
 }) => {
-  const { page, pagesOnFlow } = props;
+  const { page, pagesOnFlow, flow } = props;
   const router = useRouter();
   const [name, setName] = useState("");
   const [messages, setMessages] = useState([]);
@@ -79,7 +80,7 @@ const PageEditorContainer = (props: {
   >();
 
   useEffect(() => {
-    if (page) {
+    if (page && page !== "new") {
       fetch(`/api/page/${page}`)
         .then(data => data.json())
         .then(data => {
@@ -123,14 +124,14 @@ const PageEditorContainer = (props: {
         messages,
         transitionRoutes,
         parameters,
+        flow,
       }),
     })
       .then(data => data.json())
       .then(data => {
-        setName(data.displayName);
-        setMessages(data.entryFulfillment.messages);
-        setTransitionRoutes(data.transitionRoutes);
-        setParameters(data.form.parameters);
+        delete router.query.flow;
+        router.query.page = data.uid;
+        router.push(router);
       });
   };
 
@@ -140,7 +141,11 @@ const PageEditorContainer = (props: {
       headers: { "Content-Type": "application/json" },
     })
       .then(data => data.json())
-      .then(data => {});
+      .then(data => {
+        router.query.flow = data.flowId;
+        router.query.page = "new";
+        router.push(router);
+      });
   };
 
   const saveMessage = (

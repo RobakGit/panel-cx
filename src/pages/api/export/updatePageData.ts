@@ -2,6 +2,8 @@ import { Agent } from "@prisma/client";
 import fs from "fs";
 import prisma from "@/services/prisma";
 import { JsonValue } from "@prisma/client/runtime/library";
+import fsPromises from "fs/promises";
+import { rimraf } from "rimraf";
 
 function findFile(path: string, pageUid: string) {
   const pages = fs.readdirSync(`${path}/pages`);
@@ -12,6 +14,19 @@ function findFile(path: string, pageUid: string) {
       pageUid
   );
   return pageDirectory[0];
+}
+
+function createPageFile(
+  path: string,
+  pageDisplayName: string,
+  pageUid: string
+) {
+  const fileName = encodeURI(pageDisplayName);
+  fs.writeFileSync(
+    `${path}/pages/${fileName}.json`,
+    JSON.stringify({ name: pageUid })
+  );
+  return `${fileName}.json`;
 }
 
 function updatePage(
@@ -65,8 +80,17 @@ export default async function updatePageData(agent: Agent) {
     },
   });
 
+  const existingPagesList: string[] = [];
   for (const page of pages) {
-    const pageFile = findFile(`${path}/${page.flow.displayName}`, page.name);
+    let pageFile = findFile(`${path}/${page.flow.displayName}`, page.name);
+    if (!pageFile) {
+      pageFile = createPageFile(
+        `${path}/${page.flow.displayName}`,
+        page.displayName,
+        page.name
+      );
+    }
+    existingPagesList.push(pageFile);
     updatePage(
       `${path}/${page.flow.displayName}`,
       pageFile,
@@ -74,6 +98,26 @@ export default async function updatePageData(agent: Agent) {
       page.form,
       page.entryFulfillment,
       page.transitionRoutes
+    );
+  }
+
+  const flowsList = Array.from(
+    new Set(pages.map(page => page.flow.displayName))
+  );
+
+  let pagesToRemove: Array<{ flowName: string; pageName: string }> = [];
+
+  for (const flow of flowsList) {
+    pagesToRemove = (await fsPromises.readdir(`${path}/${flow}/pages`))
+      .filter(dir => !existingPagesList.includes(dir))
+      .map(el => {
+        return { flowName: flow, pageName: el };
+      });
+  }
+
+  for (const pageToRemove of pagesToRemove) {
+    await rimraf(
+      `${path}/${pageToRemove.flowName}/pages/${pageToRemove.pageName}`
     );
   }
 }
