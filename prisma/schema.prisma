@@ -112,6 +112,20 @@ model Webhook {
     @@map("webhook")
 }
 
+model AutomaticTest {
+    uid          String   @unique @default(uuid()) @db.Uuid
+    agentId      String   @map("agent_id") @db.Uuid
+    filename     String
+    data         Json[]
+    casesCount   Int      @map("cases_count")
+    results      Json[]
+    correctCases Int?     @map("correct_cases")
+    createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+    @@map("automatic_test")
+}
+
 enum kind {
     KIND_UNSPECIFIED
     KIND_MAP
