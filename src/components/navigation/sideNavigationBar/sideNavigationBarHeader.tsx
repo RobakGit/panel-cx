@@ -27,7 +27,7 @@ const SideNavigationBarHeader = (props: {
   handleDrawerClose?: () => void;
 }) => {
   const { agents, handleDrawerClose } = props;
-  const [agent, setAgent] = useState<string>("");
+  const [agent, setAgent] = useState<string>("new");
 
   useEffect(() => {
     const actualAgent = getActualAgent();
@@ -62,6 +62,7 @@ const SideNavigationBarHeader = (props: {
               value={agent}
               onChange={handleAgentChange}
             >
+              <MenuItem value="new">Nowy agent</MenuItem>
               {agents.map(agent => {
                 return (
                   <MenuItem key={agent.uid} value={agent.uid}>

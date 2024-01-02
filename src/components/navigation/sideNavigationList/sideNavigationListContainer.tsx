@@ -67,29 +67,30 @@ const SideNavigationListContainer = (props: {
       >
         {HeaderElement}
         <List sx={{ wordBreak: "break-all" }}>
-          {listElements.map((item, index) =>
-            dropdownKey ? (
-              <NavigationListDropdownItem
-                key={item.uid}
-                item={item}
-                dropdownKey={dropdownKey}
-                dropdownParentKey={dropdownParentKey}
-                uid={item.uid}
-                displayName={item.displayName}
-                selected={selected}
-                selectElement={selectElement}
-                newElementText={newElementText}
-              />
-            ) : (
-              <NavigationListItem
-                key={item.uid}
-                uid={item.uid}
-                displayName={item.displayName}
-                selected={selected}
-                selectElement={selectElement}
-              />
-            )
-          )}
+          {listElements.length &&
+            listElements.map((item, index) =>
+              dropdownKey ? (
+                <NavigationListDropdownItem
+                  key={item.uid}
+                  item={item}
+                  dropdownKey={dropdownKey}
+                  dropdownParentKey={dropdownParentKey}
+                  uid={item.uid}
+                  displayName={item.displayName}
+                  selected={selected}
+                  selectElement={selectElement}
+                  newElementText={newElementText}
+                />
+              ) : (
+                <NavigationListItem
+                  key={item.uid}
+                  uid={item.uid}
+                  displayName={item.displayName}
+                  selected={selected}
+                  selectElement={selectElement}
+                />
+              )
+            )}
         </List>
       </Drawer>
     </Grid>

@@ -38,9 +38,7 @@ export default async function Intent(
             displayName,
             trainingPhrases: trainingPhrases.map(phrase => {
               return {
-                parts: phrase.split(/( )/g).map(part => {
-                  return { text: part, auto: true };
-                }),
+                parts: phrase,
                 repeatCount: 1,
                 languageCode: "pl",
               };
@@ -56,9 +54,7 @@ export default async function Intent(
             displayName,
             trainingPhrases: trainingPhrases.map(phrase => {
               return {
-                parts: phrase.split(/( )/g).map(part => {
-                  return { text: part, auto: true };
-                }),
+                parts: phrase,
                 repeatCount: 1,
                 languageCode: "pl",
               };

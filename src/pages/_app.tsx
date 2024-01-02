@@ -6,6 +6,7 @@ import SideNavigationBarContainer from "@/components/navigation/sideNavigationBa
 import { Box } from "@mui/material";
 import { useState } from "react";
 import { Inter } from "next/font/google";
+import { useRouter } from "next/router";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,20 +54,26 @@ export default function App({ Component, pageProps }: AppProps) {
     setOpen(false);
   };
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ display: "flex" }} className={`${inter.className}`}>
-        <HeaderContainer headerHeight={headerHeight} />
-        <SideNavigationBarContainer
-          drawerWidth={drawerWidth}
-          open={open}
-          handleDrawerOpen={handleSideBarOpen}
-          handleDrawerClose={handleSideBarClose}
-        />
-        <Main open={open}>
-          <Component {...pageProps} />
-        </Main>
-      </Box>
-    </ThemeProvider>
-  );
+  const router = useRouter();
+
+  if (router.route === "/doc") {
+    return <></>;
+  } else {
+    return (
+      <ThemeProvider theme={theme}>
+        <Box sx={{ display: "flex" }} className={`${inter.className}`}>
+          <HeaderContainer headerHeight={headerHeight} />
+          <SideNavigationBarContainer
+            drawerWidth={drawerWidth}
+            open={open}
+            handleDrawerOpen={handleSideBarOpen}
+            handleDrawerClose={handleSideBarClose}
+          />
+          <Main open={open}>
+            <Component {...pageProps} />
+          </Main>
+        </Box>
+      </ThemeProvider>
+    );
+  }
 }

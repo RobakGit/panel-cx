@@ -28,7 +28,7 @@ export default function Entity() {
     })
       .then(data => data.json())
       .then(data => {
-        setEntities(data);
+        if (Array.isArray(data)) setEntities(data);
       });
   }, []);
 
