@@ -14,7 +14,7 @@ export default function TestFilesList({
 }) {
   return (
     <Grid item container gap={1} direction={"column"}>
-      {type === "result" ? "Pliki oryginalne" : "Wyniki"}
+      {type === "result" ? "Wyniki" : "Pliki oryginalne"}
       {tests.map(test => (
         <Grid
           item

@@ -8,19 +8,20 @@ datasource db {
 }
 
 model Agent {
-    uid             String   @unique @default(uuid()) @db.Uuid
-    agent           String   @db.Uuid
-    keyFilePath     String   @map("key_filename")
-    displayName     String   @map("display_name")
-    projectId       String   @map("project_id")
+    uid             String          @unique @default(uuid()) @db.Uuid
+    agent           String          @db.Uuid
+    keyFilePath     String          @map("key_filename")
+    displayName     String          @map("display_name")
+    projectId       String          @map("project_id")
     location        String
-    startFlow       String   @map("start_flow")
-    defaultLanguage String   @map("default_language")
-    createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
-    updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+    startFlow       String          @map("start_flow")
+    defaultLanguage String          @map("default_language")
+    createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
     Flow            Flow[]
     Entity          Entity[]
     Intent          Intent[]
+    AutomaticTest   AutomaticTest[]
 
     @@unique([projectId, agent])
     @@map("agent")
@@ -122,6 +123,8 @@ model AutomaticTest {
     correctCases Int?     @map("correct_cases")
     createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
     updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+    agent Agent @relation(fields: [agentId], references: [uid])
 
     @@map("automatic_test")
 }

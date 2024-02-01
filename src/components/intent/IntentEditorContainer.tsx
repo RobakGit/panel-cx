@@ -1,15 +1,43 @@
 import { getActualAgent } from "@/localStorage/locatStorage";
 import { Button, Grid, IconButton, TextField } from "@mui/material";
-import { DataGrid, GridCellParams, GridColDef } from "@mui/x-data-grid";
-import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
+import {
+  DataGrid,
+  GridCellModes,
+  GridCellModesModel,
+  GridCellParams,
+  GridColDef,
+  GridRenderEditCellParams,
+  GridValueGetterParams,
+} from "@mui/x-data-grid";
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import HighlightOffOutlinedIcon from "@mui/icons-material/HighlightOffOutlined";
+import HTMLReactParser from "html-react-parser";
+import CellEditor from "./cellEditor/cellEditor";
+import stc from "string-to-color";
 
 const IntentEditorContainer = (props: { intent: string | undefined }) => {
   const { intent } = props;
   const [name, setName] = useState("");
-  const [trainingPhrases, setTrainingPhrases] = useState<Array<string>>([]);
-  const [entities, setEntities] = useState<Array<string>>([]);
+  const [trainingPhrases, setTrainingPhrases] = useState<
+    Array<
+      Array<{
+        auto: boolean;
+        text: string;
+        parameterId?: string;
+      }>
+    >
+  >([]);
+  const [entities, setEntities] = useState<
+    Array<{ id: string; entityType: string }>
+  >([]);
   const [phrase, setPhrase] = useState("");
+  const [cellModesModel, setCellModesModel] = useState<GridCellModesModel>({});
 
   useEffect(() => {
     if (intent) {
@@ -19,14 +47,21 @@ const IntentEditorContainer = (props: { intent: string | undefined }) => {
           setName(data.displayName);
           setTrainingPhrases(
             data.trainingPhrases?.map(
-              (trainingPhrase: { parts: Array<{ text: string }> }) =>
-                trainingPhrase?.parts.map(part => part.text).join("")
+              (trainingPhrase: {
+                parts: Array<{
+                  auto: boolean;
+                  text: string;
+                  parameterId?: string;
+                }>;
+              }) => trainingPhrase?.parts
+              // }) => trainingPhrase?.parts.map(part => part.text).join("")
             )
           );
           setEntities(
             data.parameters.map(
-              (parameter: { id: string; entityType: string }) =>
-                parameter.entityType
+              (parameter: { id: string; entityType: string }) => {
+                return { id: parameter.id, entityType: parameter.entityType };
+              }
             )
           );
           console.log(data.trainingPhrases);
@@ -55,7 +90,12 @@ const IntentEditorContainer = (props: { intent: string | undefined }) => {
 
   const handleKeyPress = (event: KeyboardEvent) => {
     if (event.key === "Enter" && !event.shiftKey) {
-      setTrainingPhrases([...trainingPhrases, ...phrase.split(/\n/)]);
+      setTrainingPhrases([
+        ...trainingPhrases,
+        ...phrase.split(/\n/).map(p => {
+          return [{ auto: true, text: p }];
+        }),
+      ]);
       setPhrase("");
       event.preventDefault();
     }
@@ -74,7 +114,7 @@ const IntentEditorContainer = (props: { intent: string | undefined }) => {
         setTrainingPhrases(
           data.trainingPhrases?.map(
             (trainingPhrase: { parts: Array<{ text: string }> }) =>
-              trainingPhrase?.parts.map(part => part.text).join("")
+              trainingPhrase?.parts.map(part => part)
           )
         );
         console.log(data.trainingPhrases);
@@ -90,17 +130,108 @@ const IntentEditorContainer = (props: { intent: string | undefined }) => {
       .then(data => {});
   };
 
+  const handleCellClick = useCallback(
+    (params: GridCellParams, event: React.MouseEvent) => {
+      if (!params.isEditable) {
+        return;
+      }
+
+      // Ignore portal
+      if (
+        (event.target as any).nodeType === 1 &&
+        !event.currentTarget.contains(event.target as Element)
+      ) {
+        return;
+      }
+
+      setCellModesModel(prevModel => {
+        return {
+          // Revert the mode of the other cells from other rows
+          ...Object.keys(prevModel).reduce(
+            (acc, id) => ({
+              ...acc,
+              [id]: Object.keys(prevModel[id]).reduce(
+                (acc2, field) => ({
+                  ...acc2,
+                  [field]: { mode: GridCellModes.View },
+                }),
+                {}
+              ),
+            }),
+            {}
+          ),
+          [params.id]: {
+            // Revert the mode of other cells in the same row
+            ...Object.keys(prevModel[params.id] || {}).reduce(
+              (acc, field) => ({
+                ...acc,
+                [field]: { mode: GridCellModes.View },
+              }),
+              {}
+            ),
+            [params.field]: { mode: GridCellModes.Edit },
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleCellModesModelChange = useCallback(
+    (newModel: GridCellModesModel) => {
+      setCellModesModel(newModel);
+    },
+    []
+  );
+
   const columns: GridColDef[] = [
     {
-      field: "text",
+      field: "phrase",
       headerName: "Fraza",
       editable: true,
       flex: 10,
+      renderEditCell(row: GridRenderEditCellParams) {
+        return (
+          <CellEditor
+            parameters={row.row.parameters}
+            entities={entities}
+            editMessage={(val, param) => {
+              console.log("edit", val, param);
+              console.log("pohras", trainingPhrases);
+              const newPhrases = trainingPhrases;
+              newPhrases[row.id] = param;
+              setTrainingPhrases(newPhrases);
+            }}
+          />
+        );
+      },
+      valueGetter: (params: GridValueGetterParams) => {
+        return params.value.map(phrase => phrase.text).join("");
+      },
+      renderCell: (row: GridCellParams) => {
+        return HTMLReactParser(`<p>
+          ${row.row.phrase
+            .map(phrase => {
+              let text = "";
+              if (phrase.parameterId) {
+                text = `<mark data-parameter="${
+                  phrase.parameterId
+                }" style="background-color: ${stc(phrase.parameterId)}33">${
+                  phrase.text
+                }</mark>`;
+              } else {
+                text = phrase.text;
+              }
+              return text;
+            })
+            .join("")}</p>
+        `);
+      },
       valueSetter(params) {
-        const tempPhrases = trainingPhrases;
-        tempPhrases[params.row.id] = params.value;
-        setTrainingPhrases([...tempPhrases]);
-        return { ...params.row };
+        return {
+          id: params.row.id,
+          parameters: params.row.phrase,
+        };
       },
     },
     {
@@ -196,17 +327,25 @@ const IntentEditorContainer = (props: { intent: string | undefined }) => {
             columns={columns}
             autoHeight
             getRowId={r => r.id}
+            rowSelection={false}
             columnHeaderHeight={0}
+            cellModesModel={cellModesModel}
+            onCellModesModelChange={handleCellModesModelChange}
+            onCellClick={handleCellClick}
             initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
             pageSizeOptions={[10, 25, 100]}
             rows={trainingPhrases
               .map((trainingPhrase, index) => {
                 return {
                   id: index,
-                  text: trainingPhrase,
+                  phrase: trainingPhrase,
                 };
               })
               .reverse()}
+            onProcessRowUpdateError={error => console.log("UPERR:", error)}
+            processRowUpdate={(newRow, oldRow) => {
+              return newRow;
+            }}
           />
         )}
       </Grid>
@@ -218,6 +357,7 @@ const IntentEditorContainer = (props: { intent: string | undefined }) => {
             columns={columnsEntity}
             autoHeight
             getRowId={r => r.id}
+            rowSelection={false}
             columnHeaderHeight={0}
             initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
             pageSizeOptions={[10, 25, 100]}
@@ -225,7 +365,7 @@ const IntentEditorContainer = (props: { intent: string | undefined }) => {
               .map((entity, index) => {
                 return {
                   id: index,
-                  entity: entity,
+                  entity: entity.entityType,
                 };
               })
               .reverse()}

@@ -1,5 +1,9 @@
 export const setActualAgent = (value: string) => {
-  window.localStorage.setItem("agent", value);
+  if (value === "new") {
+    window.localStorage.removeItem("agent");
+  } else {
+    window.localStorage.setItem("agent", value);
+  }
 };
 
 export const getActualAgent = () => {

@@ -28,8 +28,10 @@ export default function Intent() {
     })
       .then(data => data.json())
       .then(data => {
-        setFilteredIntents(data);
-        setIntents(data);
+        if (Array.isArray(data)) {
+          setFilteredIntents(data);
+          setIntents(data);
+        }
       });
   }, []);
 
