@@ -24,8 +24,8 @@ const EntityListHeader = (props: {
 
   const router = useRouter();
 
-  const selectElement = () => {
-    delete router.query["entity"];
+  const selectElement = (id: string) => {
+    router.query["entity"] = id;
     router.push(router);
   };
 
@@ -73,7 +73,7 @@ const EntityListHeader = (props: {
           key={"create-new"}
           disablePadding
           sx={{ backgroundColor: "secondary.main" }}
-          onClick={() => selectElement()}
+          onClick={() => selectElement("new")}
         >
           <ListItemButton>
             <ListItemText primary="Dodaj Encję" />

@@ -26,7 +26,7 @@ export default async function Entity(
       displayName,
       entities,
     }: { agent: string; displayName: string; entities: Array<{}> } = req.body;
-    if (!entity || entity == "undefined") {
+    if (entity == "new") {
       return res.status(success).send(
         await prisma.entity.create({
           data: {
